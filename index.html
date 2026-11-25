@@ -9,8 +9,8 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
-/* Layout concept: one instrument panel. Mode switch on top, a dark "screen" (range trace + scrolling waterfall)
-   in the middle, then the controls underneath, all in a single narrow column built for a phone held in one hand. */
+/* Layout concept: one instrument panel. Mode switch on top, a dark "screen" (range trace + scrolling waterfall),
+   a single Start button, then a Calibration card (its own section, with a guided procedure), then settings. */
 :root{
   color-scheme: dark;
   --bg:#061317; --panel:#0b1d23; --panel2:#10282f; --line:#1b3a43;
@@ -46,6 +46,7 @@ body{
 }
 .app{max-width:560px; margin:0 auto; display:grid; gap:16px}
 h1{font:600 30px/1 var(--font-display); letter-spacing:.02em; margin:0; text-transform:uppercase}
+h2{font:600 22px/1.1 var(--font-display); letter-spacing:.04em; margin:0; text-transform:uppercase}
 .tag{margin:6px 0 0; color:var(--muted); font-size:14px; max-width:44ch}
 .top{display:grid; gap:14px}
 
@@ -55,6 +56,7 @@ h1{font:600 30px/1 var(--font-display); letter-spacing:.02em; margin:0; text-tra
   font:600 15px var(--font-body); min-height:44px; border-radius:7px; cursor:pointer;
 }
 .seg button[aria-selected="true"]{background:var(--panel2); color:var(--fg); box-shadow:inset 0 0 0 1px var(--line)}
+.seg button:disabled{opacity:.5; cursor:default}
 button:focus-visible,select:focus-visible,input:focus-visible,summary:focus-visible{outline:2px solid var(--scan); outline-offset:2px}
 
 /* Instrument screen stays dark in both themes */
@@ -80,18 +82,18 @@ canvas{display:block; width:100%}
 .meter{height:6px; background:#0f2830; margin:0 14px 12px; border-radius:3px; overflow:hidden}
 .meter div{height:100%; width:0; background:#ff8a4c; transition:width .08s linear}
 
-.actions{display:grid; grid-template-columns:2fr 1fr; gap:10px}
 .btn{
   appearance:none; min-height:52px; border-radius:10px; cursor:pointer; font:600 16px var(--font-body);
-  border:1px solid var(--line); background:var(--panel); color:var(--fg);
+  border:1px solid var(--line); background:var(--panel2); color:var(--fg); padding:0 18px; width:100%;
 }
 .btn.primary{background:var(--echo); color:var(--on-echo); border-color:transparent; letter-spacing:.02em}
 .btn.primary[data-on="true"]{background:transparent; color:var(--echo); border-color:var(--echo)}
+.btn.scan{background:var(--scan); color:#031316; border-color:transparent}
 .btn:disabled{opacity:.5; cursor:default}
 .msg{margin:0; min-height:1.5em; font-size:14px; color:var(--muted)}
 .msg[data-k="err"]{color:var(--danger)} .msg[data-k="ok"]{color:var(--ok)}
 
-.controls{background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:16px; display:grid; gap:18px}
+.controls{background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:16px; display:grid; gap:20px}
 .field{display:grid; gap:8px; min-width:0}
 .field>label, .field>.lbl{font:500 12px var(--font-mono); letter-spacing:.1em; text-transform:uppercase; color:var(--muted); display:flex; justify-content:space-between; gap:8px}
 .field .val{color:var(--fg)}
@@ -108,13 +110,32 @@ select,input[type="number"]{
 }
 .row{display:flex; gap:10px; align-items:center}
 .row>*{min-width:0}
+.row span{flex:none; color:var(--muted)}
 input[type="range"]{width:100%; accent-color:var(--echo); min-height:34px}
-.hint{font-size:13px; color:var(--muted); margin:0}
+.hint{font-size:13px; line-height:1.45; color:var(--muted); margin:0}
 details{border-top:1px solid var(--line); padding-top:14px}
 summary{cursor:pointer; font:500 12px var(--font-mono); letter-spacing:.1em; text-transform:uppercase; color:var(--muted); min-height:32px; display:flex; align-items:center}
-details .stack{display:grid; gap:18px; margin-top:14px}
-.check{display:flex; gap:12px; align-items:flex-start; font-size:15px}
-.check input{width:22px; height:22px; margin:2px 0 0; accent-color:var(--echo); flex:none}
+details .stack{display:grid; gap:20px; margin-top:14px}
+
+/* Calibration card */
+.cal-head{display:grid; gap:10px}
+.calstat{
+  font:500 12px/1.4 var(--font-mono); letter-spacing:.03em; border:1px solid var(--line); border-radius:8px; padding:8px 10px;
+  color:var(--muted); background:var(--panel2);
+}
+.calstat[data-s="ok"]{color:var(--ok); border-color:color-mix(in srgb, var(--ok) 45%, var(--line))}
+.calstat[data-s="warn"]{color:var(--warn); border-color:color-mix(in srgb, var(--warn) 45%, var(--line))}
+.steps{list-style:none; margin:0; padding:0; display:grid; gap:18px; counter-reset:s}
+.steps li{display:grid; grid-template-columns:28px minmax(0,1fr); gap:12px; counter-increment:s}
+.steps li::before{
+  content:counter(s); width:28px; height:28px; border-radius:50%; border:1px solid var(--scan); color:var(--scan);
+  display:grid; place-items:center; font:500 13px var(--font-mono);
+}
+.steps li>div{display:grid; gap:8px; min-width:0}
+.steps p{margin:0}
+.steps b{font-weight:600}
+.progress{height:6px; background:var(--panel2); border-radius:3px; overflow:hidden}
+.progress div{height:100%; width:0; background:var(--scan); transition:width .2s linear}
 .foot{font-size:13px; color:var(--muted); margin:0}
 .foot b{color:var(--fg); font-weight:500}
 </style>
@@ -147,16 +168,63 @@ details .stack{display:grid; gap:18px; margin-top:14px}
     <div class="meter" id="meter" hidden><div id="meterFill"></div></div>
   </section>
 
-  <div class="actions">
-    <button class="btn primary" id="go" data-on="false">Start</button>
-    <button class="btn" id="cal">Calibrate</button>
-  </div>
+  <button class="btn primary" id="go" data-on="false">Start</button>
   <p class="msg" id="msg" role="status"></p>
 
-  <section class="controls" aria-label="Controls">
+  <section class="controls" id="calCard" aria-label="Calibration">
+    <div class="cal-head">
+      <h2 id="calTitle">Distance calibration</h2>
+      <div class="calstat" id="calStat" data-s="none">Not calibrated</div>
+    </div>
+
+    <div class="field">
+      <label for="temp">Air temperature (&deg;C)</label>
+      <input id="temp" type="number" inputmode="decimal" min="-20" max="50" step="1" value="20">
+      <p class="hint">Sound travels faster in warm air, which slightly changes every distance and speed. Enter the temperature of the room you are in. <span id="cText"></span></p>
+    </div>
+
+    <div data-m="sonar">
+      <p class="hint" style="margin-bottom:16px">Phones differ in how long their audio takes to reach the speaker and mic, so sonar needs one calibration against a distance you measured yourself. It is saved on this device and only needs repeating if you change phone, audio output, or frequency by a lot.</p>
+      <ol class="steps">
+        <li><div>
+          <p><b>Set the air temperature</b> in the box above.</p>
+        </div></li>
+        <li><div>
+          <p><b>Face a flat, hard surface.</b> Stand the phone on a table or hold it still about 1 m (3 ft) from a wall, door or cabinet. Point the bottom edge, where the speaker and mic are, straight at it. Keep the space between them clear.</p>
+        </div></li>
+        <li><div>
+          <p><b>Measure the distance</b> from the phone's bottom edge to the surface with a tape measure, and enter it here.</p>
+          <div class="row">
+            <input id="calDist" type="number" inputmode="decimal" min="50" max="300" step="0.5" value="100" aria-label="Measured distance to the surface in centimetres">
+            <span>cm</span>
+          </div>
+          <p class="hint">Between 50 and 300 cm. About 100 cm works well. The more exact the tape measure, the more accurate every reading afterwards.</p>
+        </div></li>
+        <li><div>
+          <p><b>Stay still and quiet,</b> then press the button. It plays a series of pings for about 4 seconds. Nothing should move between the phone and the surface.</p>
+        </div></li>
+        <li><div>
+          <p><b>Check it.</b> Press Start with the phone still aimed at that surface. The nearest echo should read within a couple of centimetres of your tape measure. If not, check the measurement and run it again.</p>
+        </div></li>
+      </ol>
+    </div>
+
+    <div data-m="doppler" hidden>
+      <p class="hint">Doppler needs no distance. It only learns the room's background: the quiet shimmer around the tone when nothing is moving. That takes about 2.5 seconds, and it happens automatically each time you press Start. Hold the phone and everything in front of it still while it runs. Press the button below if readings drift or the room changes.</p>
+    </div>
+
+    <div class="field">
+      <button class="btn scan" id="calBtn">Run calibration</button>
+      <div class="progress" id="calProgWrap" hidden><div id="calProg"></div></div>
+      <p class="msg" id="calMsg" role="status"></p>
+    </div>
+  </section>
+
+  <section class="controls" aria-label="Settings">
     <div class="field">
       <span class="lbl" id="freqLbl">Frequency <span class="val" id="freqVal">18 kHz</span></span>
       <div class="chips" id="freqChips" role="radiogroup" aria-labelledby="freqLbl"></div>
+      <p class="hint">The pitch of the ping or tone, in kHz. Lower values (16 to 18) are louder and carry further, but some people can hear them. Higher values (19 to 21) are less noticeable, but many phone speakers and mics respond weakly up there. If readings are weak, try a lower one.</p>
     </div>
 
     <div class="field" data-m="sonar">
@@ -171,6 +239,7 @@ details .stack{display:grid; gap:18px; margin-top:14px}
         <input id="customMs" type="number" inputmode="numeric" min="100" max="20000" step="50" value="500" aria-label="Custom echo interval in milliseconds">
         <span>ms between pings</span>
       </div>
+      <p class="hint">How often a ping is sent. Continuous pings as fast as the max range allows, about 10 times a second, which suits tracking something that moves. 1000 ms or 2000 ms gives one reading every second or two, which is easier to read and lighter on the battery. Custom accepts any interval from 100 ms.</p>
     </div>
 
     <div class="field" data-m="sonar">
@@ -179,19 +248,20 @@ details .stack{display:grid; gap:18px; margin-top:14px}
         <option value="1">1 m</option><option value="2">2 m</option><option value="3">3 m</option>
         <option value="4">4 m</option><option value="6">6 m</option><option value="8">8 m</option><option value="10">10 m</option>
       </select>
+      <p class="hint">How far away the sonar listens for echoes. A shorter range pings faster and gives a cleaner trace. A longer range waits for echoes from further away.</p>
     </div>
 
     <div class="field">
       <label for="sens">Sensitivity <span class="val" id="sensVal">6</span></label>
       <input id="sens" type="range" min="1" max="10" step="1" value="6">
-      <p class="hint" data-m="sonar">Higher picks up weaker echoes but also more false ones.</p>
-      <p class="hint" data-m="doppler" hidden>Higher reacts to smaller movements.</p>
+      <p class="hint" data-m="sonar">How strong an echo must be to count. Raise it to catch weak or distant echoes. Lower it if you see readings that are not real.</p>
+      <p class="hint" data-m="doppler" hidden>How large a change must be to count as motion. Raise it to react to small movements. Lower it if the room's noise triggers false motion.</p>
     </div>
 
     <div class="field">
       <label for="vol">Volume <span class="val" id="volVal">80%</span></label>
       <input id="vol" type="range" min="10" max="100" step="5" value="80">
-      <p class="hint">Also set the phone's own volume to about 70%. Near-ultrasound can be audible to children and pets; turn it down for them.</p>
+      <p class="hint">How loud the ping or tone is. Also set the phone's own volume to about 70%. Near-ultrasound can be audible to children and pets, so turn it down around them.</p>
     </div>
 
     <details>
@@ -200,41 +270,32 @@ details .stack{display:grid; gap:18px; margin-top:14px}
         <div class="field" data-m="sonar">
           <label for="bwSel">Pulse bandwidth</label>
           <select id="bwSel">
-            <option value="500">500 Hz (long reach, coarse)</option>
-            <option value="1000">1000 Hz (balanced)</option>
+            <option value="500">500 Hz</option>
+            <option value="1000">1000 Hz</option>
             <option value="1500">1500 Hz</option>
-            <option value="2000">2000 Hz (fine detail)</option>
+            <option value="2000">2000 Hz</option>
           </select>
+          <p class="hint">How wide a range of pitches each ping sweeps across. A wider sweep tells apart objects that are close together: about 9 cm apart at 2000 Hz. A narrower sweep reaches further but only separates objects about 34 cm apart at 500 Hz. The default of 1000 Hz is a balance.</p>
         </div>
         <div class="field" data-m="sonar">
           <label for="blank">Near blanking <span class="val" id="blankVal">30 cm</span></label>
           <input id="blank" type="range" min="10" max="100" step="5" value="30">
-          <p class="hint">Ignores the speaker-to-mic leakage right at the phone.</p>
+          <p class="hint">Echoes closer than this are ignored. The speaker's sound leaks straight into the mic and would show up as a fake object right at the phone. Raise it if a phantom reading stays near zero. Lower it only if you need to measure very close up.</p>
         </div>
-        <div class="field" data-m="sonar">
-          <label for="trim">Distance trim <span class="val" id="trimVal">0 cm</span></label>
-          <input id="trim" type="range" min="-50" max="50" step="1" value="0">
-          <p class="hint">Measure a wall with a tape, then nudge this until the reading matches.</p>
-        </div>
-        <label class="check" data-m="sonar"><input id="sub" type="checkbox"><span>Remove static background. Calibrate with nothing moving in front of the phone, and fixed objects at that moment are subtracted from the trace.</span></label>
         <div class="field" data-m="doppler" hidden>
           <label for="winSel">Doppler resolution</label>
           <select id="winSel">
-            <option value="4096">Fast (4096, about 11 Hz steps)</option>
-            <option value="8192">Balanced (8192, about 6 Hz steps)</option>
-            <option value="16384">Fine (16384, about 3 Hz steps)</option>
+            <option value="4096">Fast</option>
+            <option value="8192">Balanced</option>
+            <option value="16384">Fine</option>
           </select>
-        </div>
-        <div class="field">
-          <label for="temp">Air temperature (&deg;C)</label>
-          <input id="temp" type="number" inputmode="decimal" min="-20" max="50" step="1" value="20">
-          <p class="hint" id="cText"></p>
+          <p class="hint">How long a slice of sound is analysed at a time. Fast reacts quickly but cannot tell similar speeds apart. Fine separates speeds more precisely but responds more slowly. Changing it relearns the baseline.</p>
         </div>
       </div>
     </details>
   </section>
 
-  <p class="foot"><b>How to use:</b> in Sonar, aim the phone's speaker and mic at a surface. The big number is the distance to the nearest echo. In Doppler, hold the phone still, calibrate, then move a hand or body toward or away from it.</p>
+  <p class="foot"><b>Sonar:</b> after calibrating once, aim the phone's speaker and mic at a surface and press Start. <b>Doppler:</b> hold the phone still, let it learn the baseline, then move a hand or body toward or away from it.</p>
 </main>
 
 <script>
@@ -289,6 +350,31 @@ function findPeaks(env, from, thr, sep){
 function refinePeak(env, i){
   const a = env[i - 1], b = env[i], c = env[i + 1], d = a - 2 * b + c;
   return d === 0 ? i : i + 0.5 * (a - c) / d;
+}
+
+// Known-distance calibration. Each capture starts at the moment the ping was sent. The loudest peak is the sound
+// leaking straight from speaker to mic; the surface echo must appear about 2*d/c later. The returned `zero` is the
+// capture lag that corresponds to a distance of 0, so a later echo at lag L reads (L - zero) * c / (2 * sr).
+function solveCalibration(bufs, I, Q, sr, c, d){
+  const N = I.length, delta = 2 * d / c * sr, span = bufs[0].length - N, runs = [];
+  for (const x of bufs){
+    const re = new Float32Array(span), im = new Float32Array(span), env = new Float32Array(span);
+    xcorrIQ(x, I, Q, 0, span, re, im); magnitude(re, im, env);
+    let dp = 20, mx = 0;
+    for (let i = 20; i < span; i++) if (env[i] > mx){ mx = env[i]; dp = i; }
+    const med = median(env);
+    if (mx < 8 * med) return { ok: false, code: 'nosignal' };
+    const lo = Math.max(dp + 8, Math.round(dp + delta * 0.7)), hi = Math.min(span - 2, Math.round(dp + delta * 1.3));
+    let ep = -1, ev = 0;
+    for (let i = lo; i <= hi; i++) if (env[i] >= env[i - 1] && env[i] > env[i + 1] && env[i] > ev){ ev = env[i]; ep = i; }
+    if (ep < 0 || ev < 6 * med) return { ok: false, code: 'noecho' };
+    runs.push({ dp, ep: refinePeak(env, ep), mx });
+  }
+  const zeros = runs.map(r => r.ep - delta), zero = median(zeros), dpm = median(runs.map(r => r.dp));
+  const sd = Math.sqrt(zeros.reduce((a, z) => a + (z - zero) * (z - zero), 0) / zeros.length);
+  if (sd > 12) return { ok: false, code: 'unstable', sd };
+  if (Math.abs(zero - dpm) > 70) return { ok: false, code: 'mismatch' };
+  return { ok: true, zero, sd, refAmp: median(runs.map(r => r.mx)), dp: dpm };
 }
 
 // Doppler: prof = spectrum (dB, relative to carrier) for offsets -K..+K bins; B/sg = calibrated mean and spread.
@@ -355,17 +441,23 @@ const $ = s => document.querySelector(s);
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
 const FREQS = [16, 17, 18, 19, 20, 21];
-const DEF = { mode:'sonar', freq:18, rate:'continuous', customMs:500, range:4, sens:6, bw:1000, vol:80, temp:20, trim:0, blank:30, subtract:false, win:8192 };
+const DEF = { mode:'sonar', freq:18, rate:'continuous', customMs:500, range:4, sens:6, bw:1000, vol:80, temp:20, blank:30, win:8192, calCm:100 };
 const S = Object.assign({}, DEF);
 try { Object.assign(S, JSON.parse(localStorage.getItem('soundsight') || '{}')); } catch (e) {}
+delete S.trim; delete S.subtract;
 if (!FREQS.includes(S.freq)) S.freq = 18;
 if (!['sonar','doppler'].includes(S.mode)) S.mode = 'sonar';
 if (!['continuous','1000','2000','custom'].includes(String(S.rate))) S.rate = 'continuous';
 function save(){ try { localStorage.setItem('soundsight', JSON.stringify(S)); } catch (e) {} }
 
 let ctx = null, stream = null, mic = null, sonarNode = null, wake = null;
-let running = false, runToken = 0;
+let running = false, runToken = 0, calBusy = false;
 const cal = { sonar: null, doppler: null };
+try {
+  const j = JSON.parse(localStorage.getItem('soundsight-cal') || 'null');
+  if (j && isFinite(j.zero) && isFinite(j.sr)) cal.sonar = j;
+} catch (e) {}
+function saveCal(){ try { if (cal.sonar) localStorage.setItem('soundsight-cal', JSON.stringify(cal.sonar)); else localStorage.removeItem('soundsight-cal'); } catch (e) {} }
 
 // ---------- Canvas helpers ----------
 const scopeCv = $('#scope'), fallCv = $('#fall');
@@ -428,7 +520,7 @@ function drawScope(o){
     g.beginPath(); g.moveTo(x, padT); g.lineTo(x, padT + plotH); g.stroke();
     g.fillStyle = m.color || '#ff8a4c'; g.beginPath(); g.arc(x, yOf(m.y), 4 * d, 0, TAU); g.fill();
     if (m.label){
-      g.font = `500 ${11 * d}px ${getComputedStyle(document.body).getPropertyValue('--font-mono') || 'monospace'}`;
+      g.font = `500 ${11 * d}px ui-monospace, Menlo, Consolas, monospace`;
       g.textAlign = x > W * 0.8 ? 'right' : 'left'; g.fillText(m.label, x + (x > W * 0.8 ? -6 : 6) * d, padT + 4 * d);
     }
   });
@@ -440,7 +532,7 @@ function drawScope(o){
   if (o.note){ g.textAlign = 'right'; g.fillStyle = '#5f8189'; g.fillText(o.note, W - 6 * d, 13 * d); }
 }
 
-const fall = { row: 2, ready: false };
+const fall = { row: 2 };
 function fallClear(){
   const { d } = sizeCanvas(fallCv); fall.row = Math.max(2, Math.round(2 * d));
   const g = fallCv.getContext('2d'); g.fillStyle = '#03090c'; g.fillRect(0, 0, fallCv.width, fallCv.height);
@@ -464,6 +556,7 @@ function idleScope(){
 
 // ---------- UI helpers ----------
 function setMsg(t, k){ const m = $('#msg'); m.textContent = t || ''; if (k) m.dataset.k = k; else delete m.dataset.k; }
+function setCalMsg(t, k){ const m = $('#calMsg'); m.textContent = t || ''; if (k) m.dataset.k = k; else delete m.dataset.k; }
 function setState(s, txt){ $('#state').dataset.s = s; $('#stateTxt').textContent = txt; }
 function setBig(html, dim){ const b = $('#bigVal'); b.innerHTML = html; b.classList.toggle('dim', !!dim); }
 function setLabels(l, s){ $('#bigLabel').textContent = l; $('#subVal').textContent = s; }
@@ -482,28 +575,49 @@ function refreshFreqChips(){
     b.disabled = tooHigh; b.setAttribute('aria-checked', String(f === S.freq));
     b.title = tooHigh ? 'Above what this device’s audio output can reproduce' : '';
   });
-  if ($('#freqChips').querySelector(`[data-f="${S.freq}"]`).disabled){ S.freq = 19; refreshFreqChips(); return; }
+  if (box.querySelector(`[data-f="${S.freq}"]`).disabled){ S.freq = 19; refreshFreqChips(); return; }
   $('#freqVal').textContent = S.freq + ' kHz';
+}
+function updateCalStatus(){
+  const el = $('#calStat');
+  if (S.mode === 'sonar'){
+    const c = cal.sonar;
+    if (!c){ el.textContent = 'Not calibrated. Follow the steps below before pressing Start.'; el.dataset.s = 'none'; return; }
+    const ms = (c.zero / c.sr * 1000).toFixed(1), when = c.ts ? new Date(c.ts).toLocaleString([], { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : '';
+    let t = 'Calibrated at ' + Math.round(c.distCm) + ' cm · ' + c.freq + ' kHz · delay ' + ms + ' ms' + (when ? ' · ' + when : '');
+    el.dataset.s = c.freq === S.freq ? 'ok' : 'warn';
+    if (c.freq !== S.freq) t += '. You are now on ' + S.freq + ' kHz; recalibrate for best accuracy.';
+    el.textContent = t;
+  } else {
+    el.textContent = cal.doppler ? 'Baseline learned for ' + S.freq + ' kHz.' : 'Baseline not learned yet. It is learned automatically when you press Start.';
+    el.dataset.s = cal.doppler ? 'ok' : 'none';
+  }
 }
 function applyMode(){
   const sonar = S.mode === 'sonar';
   $('#tabSonar').setAttribute('aria-selected', String(sonar)); $('#tabDoppler').setAttribute('aria-selected', String(!sonar));
   document.querySelectorAll('[data-m]').forEach(el => { el.hidden = el.dataset.m !== S.mode; });
   $('#meter').hidden = sonar;
+  $('#calTitle').textContent = sonar ? 'Distance calibration' : 'Doppler baseline';
+  $('#calBtn').textContent = sonar ? 'Run calibration' : 'Relearn baseline';
   setBig('&mdash;', true);
   setLabels(sonar ? 'Nearest echo' : 'Motion', 'Press Start');
   $('#capL').textContent = sonar ? '0 m' : '−400 Hz'; $('#capR').textContent = sonar ? '' : '+400 Hz';
   $('#capM').textContent = sonar ? 'newest at top' : 'away ←  → toward';
-  updateC(); refreshFreqChips(); idleScope();
+  updateC(); refreshFreqChips(); updateCalStatus(); idleScope();
 }
-function updateC(){ $('#cText').textContent = 'Speed of sound used: ' + speedOfSound(S.temp).toFixed(1) + ' m/s'; }
+function updateC(){ $('#cText').textContent = 'Speed of sound used: ' + speedOfSound(S.temp).toFixed(1) + ' m/s.'; }
 function syncControls(){
   $('#rateSel').value = String(S.rate); $('#customMs').value = S.customMs; $('#customRow').hidden = S.rate !== 'custom';
   $('#rangeSel').value = String(S.range); $('#sens').value = S.sens; $('#sensVal').textContent = S.sens;
   $('#vol').value = S.vol; $('#volVal').textContent = S.vol + '%'; $('#bwSel').value = String(S.bw);
   $('#blank').value = S.blank; $('#blankVal').textContent = S.blank + ' cm';
-  $('#trim').value = S.trim; $('#trimVal').textContent = S.trim + ' cm'; $('#sub').checked = !!S.subtract;
-  $('#winSel').value = String(S.win); $('#temp').value = S.temp;
+  $('#winSel').value = String(S.win); $('#temp').value = S.temp; $('#calDist').value = S.calCm;
+}
+function setBusy(b){
+  calBusy = b;
+  ['#go', '#calBtn', '#tabSonar', '#tabDoppler'].forEach(s => { $(s).disabled = b; });
+  $('#calProgWrap').hidden = !b; if (!b) $('#calProg').style.width = '0';
 }
 
 // ---------- Audio setup ----------
@@ -536,42 +650,82 @@ async function releaseAudio(){
 }
 
 // ---------- Sonar ----------
-let tx = null, tI = null, tQ = null, pendingResolve = null;
-const MAX_RANGE = 10, BACK = 8;
+let tx = null, tI = null, tQ = null, pendingResolve = null, noiseRef = 0;
+const BACK = 8;
 function refreshChirp(){
   const c = makeChirp(ctx.sampleRate, S.freq * 1000, effBw(), 4, S.vol / 100);
   tx = c.tx; tI = c.I; tQ = c.Q;
 }
-function ping(capLen){ return new Promise(res => { pendingResolve = res; sonarNode.port.postMessage({ type: 'ping', chirp: tx, capLen }); }); }
+function ping(capLen, wave){ return new Promise(res => { pendingResolve = res; sonarNode.port.postMessage({ type: 'ping', chirp: wave || tx, capLen }); }); }
 function cancelPing(){
   if (sonarNode) sonarNode.port.postMessage({ type: 'cancel' });
   if (pendingResolve){ const r = pendingResolve; pendingResolve = null; r(null); }
 }
-
-async function calibrateSonar(token){
-  setState('cal', 'Calibrating'); setMsg('Calibrating. Keep the phone still and pointed at open space.');
-  const sr = ctx.sampleRate, N = tI.length, span = Math.round(sr * 0.35), bufs = [], lags = [], amps = [];
-  for (let n = 0; n < 7; n++){
-    const buf = await ping(span + N);
-    if (token !== runToken || !buf) return false;
-    if (n === 0){ await sleep(80); continue; }
-    const re = new Float32Array(span), im = new Float32Array(span), env = new Float32Array(span);
-    xcorrIQ(buf, tI, tQ, 0, span, re, im); magnitude(re, im, env);
-    let pk = 20, mx = 0; for (let i = 20; i < span; i++) if (env[i] > mx){ mx = env[i]; pk = i; }
-    const ratio = mx / Math.max(1e-12, median(env));
-    if (ratio < 8) { setMsg('No ping heard. Raise the phone volume, uncover the speaker and mic, and try again.', 'err'); return false; }
-    bufs.push(buf); lags.push(pk); amps.push(mx);
-    await sleep(70);
+function calMessage(code, sd){
+  switch (code){
+    case 'nosignal': return 'No ping was heard. Raise the phone volume, make sure the speaker and mic are uncovered, and try again.';
+    case 'noecho': return 'The ping was heard, but no clear echo came back from the surface. Use a flat, hard surface such as a wall or door, aim the bottom edge straight at it, and check the distance you entered.';
+    case 'unstable': return 'The readings varied too much (about ±' + (sd * speedOfSound(S.temp) / (2 * ctx.sampleRate) * 100).toFixed(0) + ' cm). Keep the phone and the surface still, ask others to stay out of the way, and try again.';
+    case 'mismatch': return 'The echo found does not line up with the distance you entered. Measure again from the phone’s bottom edge to the surface, enter it, and rerun.';
+    default: return 'Calibration failed. Try again.';
   }
-  const refLag = Math.round(median(lags));
-  const spread = lags.filter(l => Math.abs(l - refLag) > 3).length;
-  if (spread > 2){ setMsg('The ping timing is unstable. Close other audio apps, avoid Bluetooth headphones, then recalibrate.', 'err'); return false; }
-  const c = speedOfSound(S.temp), L = BACK + Math.round(2 * MAX_RANGE / c * sr), lag0 = refLag - BACK;
-  if (lag0 + L + N > span + N){ setMsg('Audio latency is too large on this device for sonar.', 'err'); return false; }
-  const bgRe = new Float32Array(L), bgIm = new Float32Array(L), re = new Float32Array(L), im = new Float32Array(L);
-  bufs.forEach(b => { xcorrIQ(b, tI, tQ, lag0, L, re, im); for (let i = 0; i < L; i++){ bgRe[i] += re[i] / bufs.length; bgIm[i] += im[i] / bufs.length; } });
-  cal.sonar = { refLag, refAmp: median(amps), bgRe, bgIm, bgFreq: S.freq, bgBw: effBw(), sr, bgC: c };
-  setMsg('Calibrated. Round-trip audio delay ' + (refLag / sr * 1000).toFixed(1) + ' ms.', 'ok');
+}
+
+// Runs the guided calibration. Works whether or not sonar is currently running; a running sonar is paused and resumed.
+async function runSonarCalibration(){
+  if (calBusy) return;
+  const cm = parseFloat($('#calDist').value);
+  if (!isFinite(cm) || cm < 50 || cm > 300){ setCalMsg('Enter the distance you measured, between 50 and 300 cm.', 'err'); return; }
+  if (cm <= S.blank + 15){ setCalMsg('That distance is inside the near-blanking zone (' + S.blank + ' cm). Use a larger distance or lower near blanking in Advanced.', 'err'); return; }
+  S.calCm = cm; save();
+  setBusy(true); setCalMsg('Starting…');
+  const wasRunning = running;
+  try {
+    if (wasRunning){ runToken++; cancelPing(); await sleep(100); }
+    await ensureAudio(); await ensureWorklet(); refreshChirp();
+    const sr = ctx.sampleRate, N = tI.length, c = speedOfSound(S.temp), span = Math.round(sr * 0.4), total = 9, bufs = [];
+    for (let n = 0; n < total; n++){
+      $('#calProg').style.width = Math.round(n / total * 100) + '%';
+      setCalMsg('Sending test pings (' + (n + 1) + ' of ' + total + '). Keep still.');
+      const buf = await ping(span + N);
+      if (!buf) throw new Error('Calibration was interrupted.');
+      if (n > 0) bufs.push(buf);   // first ping is a warm-up
+      await sleep(90);
+    }
+    $('#calProg').style.width = '100%'; setCalMsg('Working out the delay…'); await sleep(30);
+    const r = solveCalibration(bufs, tI, tQ, sr, c, cm / 100);
+    if (!r.ok){ setCalMsg(calMessage(r.code, r.sd), 'err'); }
+    else if (r.zero < BACK + 2){ setCalMsg('The measured delay is too small to be valid. Try again.', 'err'); }
+    else {
+      cal.sonar = { zero: r.zero, sr, vol: S.vol, freq: S.freq, bw: effBw(), temp: S.temp, distCm: cm, refAmp: r.refAmp, ts: Date.now() };
+      saveCal();
+      const spreadCm = r.sd * c / (2 * sr) * 100;
+      setCalMsg('Calibrated at ' + cm + ' cm. Readings agreed to about ±' + spreadCm.toFixed(1) + ' cm. ' + (wasRunning ? 'Sonar has resumed.' : 'Press Start to measure.'), 'ok');
+    }
+  } catch (e) {
+    if (e && e.message === 'Calibration was interrupted.') setCalMsg(e.message, 'err');
+    else { showError(e, true); }
+  } finally {
+    setBusy(false); updateCalStatus();
+    if (wasRunning && S.mode === 'sonar' && cal.sonar && cal.sonar.sr === (ctx && ctx.sampleRate)){ const t = ++runToken; sonarLoop(t); }
+    else if (wasRunning){ await stop(true); }
+    else { await releaseAudio(); }
+  }
+}
+
+// Listens without pinging to learn how noisy the room is; this raises the detection floor when it is noisy.
+async function measureNoise(token){
+  const sr = ctx.sampleRate, c = speedOfSound(S.temp), zero = cal.sonar.zero;
+  const L = BACK + Math.round(2 * S.range / c * sr), lag0 = Math.floor(zero) - BACK, capLen = lag0 + L + tI.length;
+  const silent = new Float32Array(tI.length), meds = [];
+  for (let n = 0; n < 3; n++){
+    const buf = await ping(capLen, silent);
+    if (token !== runToken || !buf) return false;
+    const re = new Float32Array(L), im = new Float32Array(L), env = new Float32Array(L);
+    xcorrIQ(buf, tI, tQ, lag0, L, re, im); magnitude(re, im, env);
+    meds.push(median(env.subarray(BACK)));
+  }
+  noiseRef = median(meds);
   return true;
 }
 
@@ -580,7 +734,7 @@ async function sonarLoop(token){
   setState('live', 'Pinging');
   while (token === runToken){
     const t0 = performance.now(), sr = ctx.sampleRate, c = speedOfSound(S.temp);
-    const L = BACK + Math.round(2 * S.range / c * sr), lag0 = cal.sonar.refLag - BACK, capLen = lag0 + L + tI.length;
+    const L = BACK + Math.round(2 * S.range / c * sr), lag0 = Math.floor(cal.sonar.zero) - BACK, capLen = lag0 + L + tI.length;
     const buf = await ping(capLen);
     if (token !== runToken || !buf) break;
     handleSonar(buf, lag0, L, c, sr);
@@ -596,39 +750,38 @@ async function sonarLoop(token){
 
 function handleSonar(buf, lag0, L, c, sr){
   const cs = cal.sonar, re = new Float32Array(L), im = new Float32Array(L), env = new Float32Array(L);
-  xcorrIQ(buf, tI, tQ, lag0, L, re, im);
-  const canSub = S.subtract && cs.bgFreq === S.freq && cs.bgBw === effBw() && cs.bgC === c && cs.bgRe.length >= L;
-  if (canSub) for (let i = 0; i < L; i++){ re[i] -= cs.bgRe[i]; im[i] -= cs.bgIm[i]; }
-  magnitude(re, im, env);
-  const blankIdx = BACK + Math.round(2 * (S.blank / 100) / c * sr);
-  const floor = Math.max(1e-9, median(env.subarray(blankIdx)));
+  xcorrIQ(buf, tI, tQ, lag0, L, re, im); magnitude(re, im, env);
+  const off = cs.zero - lag0, startIdx = Math.floor(off);
+  const blankIdx = Math.min(L - 3, Math.round(off + 2 * (S.blank / 100) / c * sr));
+  const floor = Math.max(noiseRef, median(env.subarray(blankIdx)), 1e-9);
   const k = 8.5 - 0.55 * S.sens;           // sensitivity 1..10 -> threshold 8x .. 3x the noise floor
   const thr = floor * k, sep = Math.round(sr * 0.0008);
-  let peaks = findPeaks(env, blankIdx, thr, sep);
+  const peaks = findPeaks(env, blankIdx, thr, sep);
   let strongest = null, nearest = null;
   if (peaks.length){
     strongest = peaks.reduce((a, b) => b.v > a.v ? b : a);
     const cands = peaks.filter(p => p.v >= Math.max(thr, 0.2 * strongest.v)).sort((a, b) => a.i - b.i);
     nearest = cands[0] || strongest;
   }
-  const dist = i => c * (refinePeak(env, i) - BACK) / (2 * sr) + S.trim / 100;
-  const span = L - BACK, lo = Math.log10(1), hi = Math.log10(40);
+  const dist = i => c * (lag0 + refinePeak(env, i) - cs.zero) / (2 * sr);
+  const span = L - startIdx, lo = Math.log10(1), hi = Math.log10(40);
   const norm = v => clamp((Math.log10(Math.max(v, 1e-12) / floor) - lo) / (hi - lo), 0, 1);
-  const vals = new Float32Array(span); for (let i = 0; i < span; i++) vals[i] = norm(env[BACK + i]);
-  const maxR = c * (L - BACK) / (2 * sr), step = maxR <= 2.5 ? 0.5 : (maxR <= 5.5 ? 1 : 2);
+  const vals = new Float32Array(span); for (let i = 0; i < span; i++) vals[i] = norm(env[startIdx + i]);
+  const maxR = c * span / (2 * sr), step = maxR <= 2.5 ? 0.5 : (maxR <= 5.5 ? 1 : 2);
   const ticks = []; for (let m = 0; m <= maxR + 1e-6; m += step) ticks.push({ x: m / maxR, label: (m % 1 ? m.toFixed(1) : m.toFixed(0)) + (m + step > maxR + 1e-6 ? ' m' : '') });
-  const xOf = dd => clamp((dd - S.trim / 100) / maxR, 0, 1);
+  const xOf = dd => clamp(dd / maxR, 0, 1);
   const markers = [];
   peaks.forEach(p => { if (p !== nearest) markers.push({ x: xOf(dist(p.i)), y: norm(p.v), color: 'rgba(255,138,76,.45)' }); });
   if (nearest) markers.push({ x: xOf(dist(nearest.i)), y: norm(nearest.v), label: dist(nearest.i).toFixed(2) + ' m' });
-  drawScope({ vals, thr: norm(thr), markers, ticks, shade: clamp((S.blank / 100) / maxR, 0, 1), note: canSub ? 'background removed' : '' });
+  drawScope({ vals, thr: norm(thr), markers, ticks, shade: clamp((S.blank / 100) / maxR, 0, 1) });
   fallPush(vals);
   if (nearest){
     misses = 0; let d = dist(nearest.i);
     if (lastD != null && Math.abs(d - lastD) < 0.15) d = lastD * 0.5 + d * 0.5;
     lastD = d;
     setBig(d.toFixed(2) + '<span class="unit">m</span>', false);
-    const dbv = 20 * Math.log10(strongest.v / Math.max(1e-12, cs.refAmp));
+    const ref = cs.refAmp * (S.vol / (cs.vol || S.vol));
+    const dbv = 20 * Math.log10(strongest.v / Math.max(1e-12, ref));
     setLabels('Nearest echo', 'Strongest ' + dist(strongest.i).toFixed(2) + ' m · ' + dbv.toFixed(0) + ' dB · ' + rateEma.toFixed(1) + ' pings/s');
   } else {
     misses++;
@@ -668,11 +821,13 @@ function readFrame(){
   const snr = -median(far);
   return { prof, K, G, bin, c0, snr, mx };
 }
+function relearnDoppler(msg){
+  cal.doppler = null; dopCalState = { t0: performance.now() + 600, n: 0, sum: null, sumSq: null };
+  setState('cal', 'Learning'); setMsg(msg || 'Learning the baseline. Hold the phone and everything in front of it still.'); updateCalStatus();
+}
 function startDoppler(token){
   startTone(); makeAnalyser(); motionUntil = 0; dopLast = null;
-  if (!cal.doppler) dopCalState = { t0: performance.now() + 600, n: 0, sum: null, sumSq: null };
-  setState(cal.doppler ? 'live' : 'cal', cal.doppler ? 'Listening' : 'Calibrating');
-  if (!cal.doppler) setMsg('Calibrating. Hold the phone and everything in front of it still.');
+  relearnDoppler();
   dopTimer = setInterval(() => { if (token !== runToken){ clearInterval(dopTimer); return; } dopTick(); }, 50);
 }
 function dopTick(){
@@ -683,15 +838,15 @@ function dopTick(){
     if (!st.sum){ st.sum = new Float32Array(n); st.sumSq = new Float32Array(n); }
     for (let j = 0; j < n; j++){ st.sum[j] += f.prof[j]; st.sumSq[j] += f.prof[j] * f.prof[j]; }
     st.n++;
-    const left = Math.max(0, 2500 - (now - st.t0)); setLabels('Calibrating', 'Hold still · ' + (left / 1000).toFixed(1) + ' s');
+    const left = Math.max(0, 2500 - (now - st.t0)); setLabels('Learning baseline', 'Hold still · ' + (left / 1000).toFixed(1) + ' s');
     setBig('&hellip;', true);
     if (now - st.t0 >= 2500 && st.n >= 15){
       const B = new Float32Array(n), sg = new Float32Array(n);
       for (let j = 0; j < n; j++){ B[j] = st.sum[j] / st.n; sg[j] = Math.max(2, Math.sqrt(Math.max(0, st.sumSq[j] / st.n - B[j] * B[j]))); }
       cal.doppler = { B, sg, bin: f.bin, win: +S.win, freq: S.freq };
-      dopCalState = null; setState('live', 'Listening');
-      if (f.snr < 15) setMsg('Calibrated, but the tone is weak (' + f.snr.toFixed(0) + ' dB over noise). Raise the volume or try a lower frequency.', 'err');
-      else setMsg('Calibrated. Carrier is ' + f.snr.toFixed(0) + ' dB over the noise floor. Try waving a hand.', 'ok');
+      dopCalState = null; setState('live', 'Listening'); updateCalStatus();
+      if (f.snr < 15) setMsg('Baseline learned, but the tone is weak (' + f.snr.toFixed(0) + ' dB over noise). Raise the volume or try a lower frequency.', 'err');
+      else setMsg('Baseline learned. Carrier is ' + f.snr.toFixed(0) + ' dB over the noise floor. Try waving a hand.', 'ok');
     }
     return;
   }
@@ -711,7 +866,7 @@ function dopTick(){
     setBig(dopLast.v.toFixed(2) + '<span class="unit">m/s</span>', false);
     setLabels(label, 'Shift ' + (dopLast.dir < 0 ? '−' : '+') + dopLast.hz.toFixed(0) + ' Hz · carrier +' + f.snr.toFixed(0) + ' dB');
   } else {
-    setBig('Still', true); setLabels('No motion', 'Carrier +' + f.snr.toFixed(0) + ' dB over noise · ' + (S.freq) + ' kHz');
+    setBig('Still', true); setLabels('No motion', 'Carrier +' + f.snr.toFixed(0) + ' dB over noise · ' + S.freq + ' kHz');
   }
   const vals = new Float32Array(f.prof.length), base = new Float32Array(f.prof.length), row = new Float32Array(f.prof.length);
   for (let j = 0; j < vals.length; j++){
@@ -731,35 +886,42 @@ function stopDoppler(){
 }
 
 // ---------- Session control ----------
-function showError(e){
-  const n = e && (e.name || e.message);
-  if (n === 'INSECURE' || (e && e.message === 'INSECURE')) setMsg('Microphone access needs a secure address. Open this page over https:// (localhost also works on a computer).', 'err');
-  else if (n === 'NotAllowedError' || n === 'SecurityError') setMsg('Microphone permission was denied. Allow it in the browser’s site settings, then press Start.', 'err');
-  else if (n === 'NotFoundError') setMsg('No microphone was found on this device.', 'err');
-  else if (e && e.message === 'NOWORKLET') setMsg('This browser has no AudioWorklet support. Use a current Chrome, Edge, Firefox or Safari 14.5+.', 'err');
-  else setMsg('Could not start audio: ' + ((e && e.message) || e), 'err');
+function showError(e, toCal){
+  const set = toCal ? setCalMsg : setMsg, n = e && (e.name || e.message);
+  if (n === 'INSECURE' || (e && e.message === 'INSECURE')) set('Microphone access needs a secure address. Open this page over https:// (localhost also works on a computer).', 'err');
+  else if (n === 'NotAllowedError' || n === 'SecurityError') set('Microphone permission was denied. Allow it in the browser’s site settings, then try again.', 'err');
+  else if (n === 'NotFoundError') set('No microphone was found on this device.', 'err');
+  else if (e && e.message === 'NOWORKLET') set('This browser has no AudioWorklet support. Use a current Chrome, Edge, Firefox or Safari 14.5+.', 'err');
+  else set('Could not start audio: ' + ((e && e.message) || e), 'err');
 }
 function ui(){
   const b = $('#go'); b.dataset.on = String(running); b.textContent = running ? 'Stop' : 'Start';
   if (!running) setState('idle', 'Idle');
 }
-async function start(forceCal){
-  if (running) return;
+function needCalibration(text){
+  setMsg(text, 'err');
+  const card = $('#calCard'); if (card.scrollIntoView) card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+async function start(){
+  if (running || calBusy) return;
+  if (S.mode === 'sonar' && !cal.sonar){ needCalibration('Calibrate distance first. Follow the steps in the Calibration section.'); return; }
   running = true; const token = ++runToken; ui(); setMsg('Starting…'); lastPingT = 0; rateEma = 0; misses = 0; lastD = null;
   try {
     await ensureAudio();
     try { if (navigator.wakeLock) wake = await navigator.wakeLock.request('screen'); } catch (e) {}
     fallClear();
     if (S.mode === 'sonar'){
+      if (cal.sonar.sr !== ctx.sampleRate){
+        cal.sonar = null; saveCal(); updateCalStatus();
+        await stop(true); needCalibration('This device’s audio setup has changed since your last calibration. Calibrate again.'); return;
+      }
       await ensureWorklet(); refreshChirp();
-      if (forceCal || !cal.sonar || cal.sonar.sr !== ctx.sampleRate){
-        const ok = await calibrateSonar(token);
-        if (!ok){ if (token === runToken) await stop(); return; }
-      } else setMsg('');
-      if (token !== runToken) return;
+      setState('cal', 'Noise check'); setMsg('Checking the room’s noise level…');
+      const ok = await measureNoise(token);
+      if (!ok || token !== runToken) return;
+      setMsg('');
       sonarLoop(token);
     } else {
-      if (forceCal) cal.doppler = null;
       startDoppler(token);
     }
   } catch (e) {
@@ -774,31 +936,21 @@ async function stop(keepMsg){
   if (was && !keepMsg){ const m = $('#msg'); if (!m.dataset.k) setMsg(''); }
   if (was) setLabels(S.mode === 'sonar' ? 'Nearest echo' : 'Motion', 'Stopped');
 }
-async function recalibrate(){
-  if (!running){ start(true); return; }
-  if (S.mode === 'doppler'){
-    cal.doppler = null; dopCalState = { t0: performance.now() + 300, n: 0, sum: null, sumSq: null };
-    setState('cal', 'Calibrating'); setMsg('Calibrating. Hold the phone and everything in front of it still.');
-  } else {
-    const token = ++runToken; cancelPing(); await sleep(50);
-    const ok = await calibrateSonar(token);
-    if (!ok){ await stop(true); return; }
-    sonarLoop(token);
-  }
+function calClick(){
+  if (S.mode === 'sonar'){ runSonarCalibration(); return; }
+  if (!running){ start(); return; }                       // starting Doppler learns the baseline
+  relearnDoppler('Relearning the baseline. Hold the phone and everything in front of it still.');
 }
 
 // ---------- Parameter changes ----------
 function onParam(kind){
   if (kind === 'freq' || kind === 'bw'){
-    if (S.mode === 'sonar'){
-      if (cal.sonar && (cal.sonar.bgFreq !== S.freq || cal.sonar.bgBw !== effBw()) && S.subtract) setMsg('Frequency changed. Recalibrate to rebuild the background.');
-      if (ctx && tI) refreshChirp();
-    } else {
-      cal.doppler = null;
+    if (S.mode === 'sonar'){ if (ctx && tI) refreshChirp(); updateCalStatus(); }
+    else {
+      cal.doppler = null; updateCalStatus();
       if (running && osc){
         osc.frequency.setTargetAtTime(S.freq * 1000, ctx.currentTime, 0.02);
-        dopCalState = { t0: performance.now() + 600, n: 0, sum: null, sumSq: null };
-        setState('cal', 'Calibrating'); setMsg('Frequency changed. Hold still while recalibrating.');
+        relearnDoppler('Frequency changed. Hold still while the baseline is relearned.');
       }
     }
   }
@@ -807,18 +959,15 @@ function onParam(kind){
     if (oscGain) oscGain.gain.setTargetAtTime(S.vol / 100 * 0.8, ctx.currentTime, 0.05);
   }
   if (kind === 'win'){
-    cal.doppler = null;
-    if (running && S.mode === 'doppler'){
-      makeAnalyser(); dopCalState = { t0: performance.now() + 600, n: 0, sum: null, sumSq: null };
-      setState('cal', 'Calibrating'); setMsg('Resolution changed. Hold still while recalibrating.');
-    }
+    cal.doppler = null; updateCalStatus();
+    if (running && S.mode === 'doppler'){ makeAnalyser(); relearnDoppler('Resolution changed. Hold still while the baseline is relearned.'); }
   }
 }
 
 function bind(){
-  $('#go').addEventListener('click', () => running ? stop() : start(false));
-  $('#cal').addEventListener('click', recalibrate);
-  const setMode = async m => { if (S.mode === m) return; if (running) await stop(); S.mode = m; save(); applyMode(); setMsg(''); };
+  $('#go').addEventListener('click', () => running ? stop() : start());
+  $('#calBtn').addEventListener('click', calClick);
+  const setMode = async m => { if (S.mode === m || calBusy) return; if (running) await stop(); S.mode = m; save(); applyMode(); setMsg(''); setCalMsg(''); };
   $('#tabSonar').addEventListener('click', () => setMode('sonar'));
   $('#tabDoppler').addEventListener('click', () => setMode('doppler'));
   $('#rateSel').addEventListener('change', e => { S.rate = e.target.value; $('#customRow').hidden = S.rate !== 'custom'; save(); });
@@ -828,10 +977,9 @@ function bind(){
   $('#vol').addEventListener('input', e => { S.vol = +e.target.value; $('#volVal').textContent = S.vol + '%'; save(); onParam('vol'); });
   $('#bwSel').addEventListener('change', e => { S.bw = +e.target.value; save(); onParam('bw'); });
   $('#blank').addEventListener('input', e => { S.blank = +e.target.value; $('#blankVal').textContent = S.blank + ' cm'; save(); });
-  $('#trim').addEventListener('input', e => { S.trim = +e.target.value; $('#trimVal').textContent = S.trim + ' cm'; save(); });
-  $('#sub').addEventListener('change', e => { S.subtract = e.target.checked; save(); if (S.subtract) setMsg('Press Calibrate with nothing moving in front of the phone to capture the background.'); });
   $('#winSel').addEventListener('change', e => { S.win = +e.target.value; save(); onParam('win'); });
   $('#temp').addEventListener('input', e => { const v = parseFloat(e.target.value); if (isFinite(v)){ S.temp = clamp(v, -20, 50); save(); updateC(); } });
+  $('#calDist').addEventListener('input', e => { const v = parseFloat(e.target.value); if (isFinite(v)){ S.calCm = v; save(); } });
   let rz; window.addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(() => { if (lastScope) drawScope(lastScope); fallClear(); }, 120); });
   document.addEventListener('visibilitychange', () => { if (!document.hidden && running && ctx && ctx.state !== 'running') ctx.resume(); });
 }
