@@ -90,6 +90,8 @@ canvas{display:block; width:100%}
 .btn.primary[data-on="true"]{background:transparent; color:var(--echo); border-color:var(--echo)}
 .btn.scan{background:var(--scan); color:#031316; border-color:transparent}
 .btn:disabled{opacity:.5; cursor:default}
+.btn.small{min-height:44px; font-size:14px; padding:0 10px}
+.btnrow{display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px}
 .msg{margin:0; min-height:1.5em; font-size:14px; color:var(--muted)}
 .msg[data-k="err"]{color:var(--danger)} .msg[data-k="ok"]{color:var(--ok)}
 
@@ -177,40 +179,12 @@ details .stack{display:grid; gap:20px; margin-top:14px}
       <div class="calstat" id="calStat" data-s="none">Not calibrated</div>
     </div>
 
-    <div class="field">
-      <label for="temp">Air temperature (&deg;C)</label>
-      <input id="temp" type="number" inputmode="decimal" min="-20" max="50" step="1" value="20">
-      <p class="hint">Sound travels faster in warm air, which slightly changes every distance and speed. Enter the temperature of the room you are in. <span id="cText"></span></p>
-    </div>
-
-    <div data-m="sonar">
-      <p class="hint" style="margin-bottom:16px">Phones differ in how long their audio takes to reach the speaker and mic, so sonar needs one calibration against a distance you measured yourself. It is saved on this device and only needs repeating if you change phone, audio output, or frequency by a lot.</p>
-      <ol class="steps">
-        <li><div>
-          <p><b>Set the air temperature</b> in the box above.</p>
-        </div></li>
-        <li><div>
-          <p><b>Face a flat, hard surface.</b> Stand the phone on a table or hold it still about 1 m (3 ft) from a wall, door or cabinet. Point the bottom edge, where the speaker and mic are, straight at it. Keep the space between them clear.</p>
-        </div></li>
-        <li><div>
-          <p><b>Measure the distance</b> from the phone's bottom edge to the surface with a tape measure, and enter it here.</p>
-          <div class="row">
-            <input id="calDist" type="number" inputmode="decimal" min="50" max="300" step="0.5" value="100" aria-label="Measured distance to the surface in centimetres">
-            <span>cm</span>
-          </div>
-          <p class="hint">Between 50 and 300 cm. About 100 cm works well. The more exact the tape measure, the more accurate every reading afterwards.</p>
-        </div></li>
-        <li><div>
-          <p><b>Stay still and quiet,</b> then press the button. It plays a series of pings for about 4 seconds. Nothing should move between the phone and the surface.</p>
-        </div></li>
-        <li><div>
-          <p><b>Check it.</b> Press Start with the phone still aimed at that surface. The nearest echo should read within a couple of centimetres of your tape measure. If not, check the measurement and run it again.</p>
-        </div></li>
-      </ol>
-    </div>
-
-    <div data-m="doppler" hidden>
-      <p class="hint">Doppler needs no distance. It only learns the room's background: the quiet shimmer around the tone when nothing is moving. That takes about 2.5 seconds, and it happens automatically each time you press Start. Hold the phone and everything in front of it still while it runs. Press the button below if readings drift or the room changes.</p>
+    <div class="field" data-m="sonar">
+      <label for="calDist">Measured distance to surface</label>
+      <div class="row">
+        <input id="calDist" type="number" inputmode="decimal" min="50" max="300" step="0.5" value="100" aria-label="Measured distance to the surface in centimetres">
+        <span>cm</span>
+      </div>
     </div>
 
     <div class="field">
@@ -218,6 +192,33 @@ details .stack{display:grid; gap:20px; margin-top:14px}
       <div class="progress" id="calProgWrap" hidden><div id="calProg"></div></div>
       <p class="msg" id="calMsg" role="status"></p>
     </div>
+
+    <details id="calHelp">
+      <summary>How to calibrate</summary>
+      <div class="stack">
+        <div data-m="sonar">
+          <p class="hint" style="margin-bottom:16px">Phones differ in how long their audio takes to reach the speaker and mic, so sonar needs one calibration against a distance you measured yourself. It is saved on this device and only needs repeating if you change phone, speaker, or frequency by a lot.</p>
+          <ol class="steps">
+            <li><div><p><b>Set the air temperature</b> in the box below.</p></div></li>
+            <li><div><p><b>Face a flat, hard surface.</b> Stand the phone on a table or hold it still about 1 m (3 ft) from a wall, door or cabinet. Point the bottom edge, where the speaker and mic are, straight at it. Keep the space between them clear.</p></div></li>
+            <li><div>
+              <p><b>Measure the distance</b> from the phone's bottom edge to the surface with a tape measure, and enter it in the box above (50 to 300 cm).</p>
+              <p class="hint">About 100 cm works well. The more exact the tape measure, the more accurate every reading afterwards.</p>
+            </div></li>
+            <li><div><p><b>Stay still and quiet,</b> then press Run calibration. It plays a series of pings for about 4 seconds. Nothing should move between the phone and the surface.</p></div></li>
+            <li><div><p><b>Check it.</b> Press Start with the phone still aimed at that surface. The nearest echo should read within a couple of centimetres of your tape measure. If not, check the measurement and run it again.</p></div></li>
+          </ol>
+        </div>
+        <div data-m="doppler" hidden>
+          <p class="hint">Doppler needs no distance. It only learns the room's background: the quiet shimmer around the tone when nothing is moving. That takes about 2.5 seconds, and it happens automatically each time you press Start. Hold the phone and everything in front of it still while it runs. Press Relearn baseline if readings drift or the room changes.</p>
+        </div>
+        <div class="field">
+          <label for="temp">Air temperature (&deg;C)</label>
+          <input id="temp" type="number" inputmode="decimal" min="-20" max="50" step="1" value="20">
+          <p class="hint">Sound travels faster in warm air, which slightly changes every distance and speed. Enter the temperature of the room you are in. <span id="cText"></span></p>
+        </div>
+      </div>
+    </details>
   </section>
 
   <section class="controls" aria-label="Settings">
@@ -267,6 +268,27 @@ details .stack{display:grid; gap:20px; margin-top:14px}
     <details>
       <summary>Advanced</summary>
       <div class="stack">
+        <div class="field">
+          <label for="spkSel">Speaker</label>
+          <select id="spkSel"><option value="">System default</option></select>
+          <p class="hint" id="spkHint">Which speaker plays the ping or tone. Only one plays at a time. The bottom speaker is best, because it sits next to the microphone.</p>
+        </div>
+        <div class="field">
+          <label for="chSel">Output channel</label>
+          <select id="chSel">
+            <option value="both">Both channels</option>
+            <option value="left">Left only</option>
+            <option value="right">Right only</option>
+          </select>
+          <p class="hint">Phones with two speakers, such as iPhones, play the left channel from one speaker and the right from the other. Pick one side so only one speaker is used. Which side is the bottom speaker depends on how you hold the phone, so test in the same orientation you will use and keep rotation locked.</p>
+          <div class="btnrow">
+            <button class="btn small" id="beepL" type="button">Beep left</button>
+            <button class="btn small" id="beepR" type="button">Beep right</button>
+            <button class="btn small" id="beepB" type="button">Beep both</button>
+          </div>
+          <p class="hint">A short, low-volume 600 Hz beep, so you can hear where each channel comes from. If you hear nothing, raise the phone's volume a little and check that the silent switch is off.</p>
+          <p class="msg" id="spkMsg" role="status"></p>
+        </div>
         <div class="field" data-m="sonar">
           <label for="bwSel">Pulse bandwidth</label>
           <select id="bwSel">
@@ -441,12 +463,13 @@ const $ = s => document.querySelector(s);
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
 const FREQS = [16, 17, 18, 19, 20, 21];
-const DEF = { mode:'sonar', freq:18, rate:'continuous', customMs:500, range:4, sens:6, bw:1000, vol:80, temp:20, blank:30, win:8192, calCm:100 };
+const DEF = { mode:'sonar', freq:18, rate:'continuous', customMs:500, range:4, sens:6, bw:1000, vol:80, temp:20, blank:30, win:8192, calCm:100, spk:null, ch:'both' };
 const S = Object.assign({}, DEF);
 try { Object.assign(S, JSON.parse(localStorage.getItem('soundsight') || '{}')); } catch (e) {}
 delete S.trim; delete S.subtract;
 if (!FREQS.includes(S.freq)) S.freq = 18;
 if (!['sonar','doppler'].includes(S.mode)) S.mode = 'sonar';
+if (!['both','left','right'].includes(S.ch)) S.ch = 'both';
 if (!['continuous','1000','2000','custom'].includes(String(S.rate))) S.rate = 'continuous';
 function save(){ try { localStorage.setItem('soundsight', JSON.stringify(S)); } catch (e) {} }
 
@@ -585,8 +608,10 @@ function updateCalStatus(){
     if (!c){ el.textContent = 'Not calibrated. Follow the steps below before pressing Start.'; el.dataset.s = 'none'; return; }
     const ms = (c.zero / c.sr * 1000).toFixed(1), when = c.ts ? new Date(c.ts).toLocaleString([], { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : '';
     let t = 'Calibrated at ' + Math.round(c.distCm) + ' cm · ' + c.freq + ' kHz · delay ' + ms + ' ms' + (when ? ' · ' + when : '');
-    el.dataset.s = c.freq === S.freq ? 'ok' : 'warn';
+    const spkChanged = (c.spk !== undefined && c.spk !== curSpk()) || (c.ch !== undefined && c.ch !== S.ch);
+    el.dataset.s = (c.freq === S.freq && !spkChanged) ? 'ok' : 'warn';
     if (c.freq !== S.freq) t += '. You are now on ' + S.freq + ' kHz; recalibrate for best accuracy.';
+    else if (spkChanged) t += '. The speaker has changed since; recalibrate for best accuracy.';
     el.textContent = t;
   } else {
     el.textContent = cal.doppler ? 'Baseline learned for ' + S.freq + ' kHz.' : 'Baseline not learned yet. It is learned automatically when you press Start.';
@@ -612,23 +637,92 @@ function syncControls(){
   $('#rangeSel').value = String(S.range); $('#sens').value = S.sens; $('#sensVal').textContent = S.sens;
   $('#vol').value = S.vol; $('#volVal').textContent = S.vol + '%'; $('#bwSel').value = String(S.bw);
   $('#blank').value = S.blank; $('#blankVal').textContent = S.blank + ' cm';
-  $('#winSel').value = String(S.win); $('#temp').value = S.temp; $('#calDist').value = S.calCm;
+  $('#winSel').value = String(S.win); $('#chSel').value = S.ch; $('#temp').value = S.temp; $('#calDist').value = S.calCm;
 }
-function setBusy(b){
+function setBusy(b, quiet){
   calBusy = b;
-  ['#go', '#calBtn', '#tabSonar', '#tabDoppler'].forEach(s => { $(s).disabled = b; });
-  $('#calProgWrap').hidden = !b; if (!b) $('#calProg').style.width = '0';
+  ['#go', '#calBtn', '#tabSonar', '#tabDoppler', '#beepL', '#beepR', '#beepB'].forEach(s => { $(s).disabled = b; });
+  $('#calProgWrap').hidden = quiet || !b; if (!b) $('#calProg').style.width = '0';
 }
 
+// ---------- Speaker selection ----------
+// Pages can only choose among the outputs the browser lists, and only where AudioContext.setSinkId exists (Chromium).
+const canPickSpeaker = () => !!(window.AudioContext && 'setSinkId' in AudioContext.prototype);
+const curSpk = () => { const s = $('#spkSel'); return s ? s.value : ''; };
+function autoSpeaker(list){
+  const good = list.find(d => /speaker/i.test(d.label) && !/ear|receiver|handset|headphone|headset|bluetooth|hdmi|usb/i.test(d.label));
+  return good ? good.deviceId : '';
+}
+async function refreshSpeakers(){
+  const sel = $('#spkSel'), hint = $('#spkHint');
+  if (!canPickSpeaker() || !navigator.mediaDevices || !navigator.mediaDevices.enumerateDevices){
+    sel.innerHTML = '<option value="">System default</option>'; sel.disabled = true;
+    hint.textContent = 'This browser does not let a web page choose the speaker, so sound plays from the phone’s default output, normally the bottom speaker. Use the output channel option below to pick one side of a stereo pair, and the beep test to check which speaker it is.';
+    return;
+  }
+  let list = [];
+  try { list = (await navigator.mediaDevices.enumerateDevices()).filter(d => d.kind === 'audiooutput' && d.deviceId !== 'default' && d.deviceId !== 'communications'); } catch (e) {}
+  const want = S.spk === null ? autoSpeaker(list) : S.spk;
+  sel.innerHTML = '';
+  const def = document.createElement('option'); def.value = ''; def.textContent = 'System default'; sel.appendChild(def);
+  list.forEach((d, i) => { const o = document.createElement('option'); o.value = d.deviceId; o.textContent = d.label || ('Speaker ' + (i + 1)); sel.appendChild(o); });
+  sel.value = [...sel.options].some(o => o.value === want) ? want : '';
+  sel.disabled = false;
+  const named = list.some(d => d.label);
+  hint.textContent = 'Which speaker plays the ping or tone. Only one plays at a time, and the bottom speaker is best because it sits next to the microphone. ' +
+    (named ? 'The browser may list only one phone speaker, and may not say which one is at the bottom. If sound seems to come from the top, try another entry. Calibrate again after changing speaker.' : 'Names appear after you press Start or calibrate once and allow the microphone.');
+}
+async function applySpeaker(){
+  if (!ctx || !canPickSpeaker()) return;
+  try { await ctx.setSinkId(curSpk()); } catch (e) { setMsg('Could not switch to that speaker. The system default is being used.', 'err'); }
+}
+
+// ---------- Output channel (stereo method) ----------
+// Everything the page plays goes through outBus, which feeds the left and right channels through separate gains.
+let outBus = null, gL = null, gR = null;
+function applyChannel(){
+  if (!gL) return;
+  gL.gain.value = S.ch === 'right' ? 0 : 1; gR.gain.value = S.ch === 'left' ? 0 : 1;
+}
+function buildOutput(){
+  outBus = ctx.createGain(); gL = ctx.createGain(); gR = ctx.createGain();
+  const m = ctx.createChannelMerger(2);
+  outBus.connect(gL); outBus.connect(gR); gL.connect(m, 0, 0); gR.connect(m, 0, 1); m.connect(ctx.destination);
+  applyChannel();
+}
+function setSpkMsg(t, k){ const m = $('#spkMsg'); m.textContent = t || ''; if (k) m.dataset.k = k; else delete m.dataset.k; }
+async function ensureCtx(){
+  if (!ctx){
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC) throw new Error('This browser has no Web Audio support.');
+    ctx = new AC({ latencyHint: 'interactive' }); buildOutput(); await applySpeaker();
+  }
+  if (ctx.state !== 'running') await ctx.resume();
+}
+async function beep(which){
+  if (running || calBusy){ setSpkMsg('Press Stop first.', 'err'); return; }
+  try {
+    await ensureCtx();
+    const t = ctx.currentTime + 0.03, o = ctx.createOscillator(), g = ctx.createGain(), m = ctx.createChannelMerger(2);
+    o.type = 'sine'; o.frequency.value = 600;
+    g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.05, t + 0.03); g.gain.setValueAtTime(0.05, t + 0.3); g.gain.linearRampToValueAtTime(0, t + 0.36);
+    o.connect(g);
+    if (which !== 'right') g.connect(m, 0, 0);
+    if (which !== 'left') g.connect(m, 0, 1);
+    m.connect(ctx.destination); o.start(t); o.stop(t + 0.4);
+    setSpkMsg('Beep: ' + which + '.');
+    o.onended = () => { try { o.disconnect(); g.disconnect(); m.disconnect(); } catch (e) {} if (!running && !calBusy && !stream) { try { ctx.suspend(); } catch (e) {} } };
+  } catch (e) { setSpkMsg('Could not play the beep: ' + ((e && e.message) || e), 'err'); }
+}
 // ---------- Audio setup ----------
 async function ensureAudio(){
   if (!window.isSecureContext || !navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) throw new Error('INSECURE');
-  if (!ctx){ const AC = window.AudioContext || window.webkitAudioContext; ctx = new AC({ latencyHint: 'interactive' }); }
-  if (ctx.state !== 'running') await ctx.resume();
+  await ensureCtx();
   if (!stream){
     stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false, channelCount: 1 } });
     mic = ctx.createMediaStreamSource(stream);
     if (sonarNode) mic.connect(sonarNode);
+    await refreshSpeakers(); await applySpeaker();   // device names are only listed after mic permission
   }
   refreshFreqChips();
 }
@@ -639,7 +733,7 @@ async function ensureWorklet(){
   await ctx.audioWorklet.addModule(url); URL.revokeObjectURL(url);
   sonarNode = new AudioWorkletNode(ctx, 'sonar-proc', { numberOfInputs: 1, numberOfOutputs: 1, outputChannelCount: [1] });
   sonarNode.port.onmessage = e => { if (e.data.type === 'capture' && pendingResolve){ const r = pendingResolve; pendingResolve = null; r(e.data.buf); } };
-  sonarNode.connect(ctx.destination);
+  sonarNode.connect(outBus);
   mic.connect(sonarNode);
 }
 async function releaseAudio(){
@@ -697,7 +791,7 @@ async function runSonarCalibration(){
     if (!r.ok){ setCalMsg(calMessage(r.code, r.sd), 'err'); }
     else if (r.zero < BACK + 2){ setCalMsg('The measured delay is too small to be valid. Try again.', 'err'); }
     else {
-      cal.sonar = { zero: r.zero, sr, vol: S.vol, freq: S.freq, bw: effBw(), temp: S.temp, distCm: cm, refAmp: r.refAmp, ts: Date.now() };
+      cal.sonar = { zero: r.zero, sr, vol: S.vol, freq: S.freq, spk: curSpk(), ch: S.ch, bw: effBw(), temp: S.temp, distCm: cm, refAmp: r.refAmp, ts: Date.now() };
       saveCal();
       const spreadCm = r.sd * c / (2 * sr) * 100;
       setCalMsg('Calibrated at ' + cm + ' cm. Readings agreed to about ±' + spreadCm.toFixed(1) + ' cm. ' + (wasRunning ? 'Sonar has resumed.' : 'Press Start to measure.'), 'ok');
@@ -795,7 +889,7 @@ let osc = null, oscGain = null, analyser = null, spec = null, dopTimer = null, d
 const DOP_SPAN = 400;
 function startTone(){
   osc = ctx.createOscillator(); osc.type = 'sine'; osc.frequency.value = S.freq * 1000;
-  oscGain = ctx.createGain(); oscGain.gain.value = 0; osc.connect(oscGain); oscGain.connect(ctx.destination); osc.start();
+  oscGain = ctx.createGain(); oscGain.gain.value = 0; osc.connect(oscGain); oscGain.connect(outBus); osc.start();
   oscGain.gain.setTargetAtTime(S.vol / 100 * 0.8, ctx.currentTime, 0.06);
 }
 function stopTone(){
@@ -978,13 +1072,19 @@ function bind(){
   $('#bwSel').addEventListener('change', e => { S.bw = +e.target.value; save(); onParam('bw'); });
   $('#blank').addEventListener('input', e => { S.blank = +e.target.value; $('#blankVal').textContent = S.blank + ' cm'; save(); });
   $('#winSel').addEventListener('change', e => { S.win = +e.target.value; save(); onParam('win'); });
+  $('#chSel').addEventListener('change', e => { S.ch = e.target.value; save(); applyChannel(); updateCalStatus(); });
+  $('#beepL').addEventListener('click', () => beep('left'));
+  $('#beepR').addEventListener('click', () => beep('right'));
+  $('#beepB').addEventListener('click', () => beep('both'));
+  $('#spkSel').addEventListener('change', async e => { S.spk = e.target.value; save(); await applySpeaker(); updateCalStatus(); });
+  if (navigator.mediaDevices && navigator.mediaDevices.addEventListener) navigator.mediaDevices.addEventListener('devicechange', refreshSpeakers);
   $('#temp').addEventListener('input', e => { const v = parseFloat(e.target.value); if (isFinite(v)){ S.temp = clamp(v, -20, 50); save(); updateC(); } });
   $('#calDist').addEventListener('input', e => { const v = parseFloat(e.target.value); if (isFinite(v)){ S.calCm = v; save(); } });
   let rz; window.addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(() => { if (lastScope) drawScope(lastScope); fallClear(); }, 120); });
   document.addEventListener('visibilitychange', () => { if (!document.hidden && running && ctx && ctx.state !== 'running') ctx.resume(); });
 }
 
-syncControls(); bind(); applyMode();
+syncControls(); bind(); applyMode(); refreshSpeakers().then(updateCalStatus);
 })();
 </script>
 </body>
