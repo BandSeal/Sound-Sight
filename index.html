@@ -1,0 +1,400 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="A clean, responsive starter website ready for your next idea.">
+  <meta name="theme-color" content="#f7f8f5">
+  <title>Northstar — A fresh start for your next idea</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #18251f;
+      --muted: #64716a;
+      --paper: #f7f8f5;
+      --surface: #fff;
+      --green: #245b43;
+      --green-dark: #194430;
+      --line: #e4e9e3;
+      --lime: #d7ed9b;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      margin: 0;
+      background: var(--paper);
+      color: var(--ink);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    a { color: inherit; }
+
+    .shell {
+      width: min(1120px, calc(100% - 48px));
+      margin-inline: auto;
+    }
+
+    .site-header {
+      min-height: 84px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      color: var(--ink);
+      font-size: 1.05rem;
+      font-weight: 750;
+      letter-spacing: -0.04em;
+      text-decoration: none;
+    }
+
+    .brand-mark {
+      display: grid;
+      width: 30px;
+      height: 30px;
+      place-items: center;
+      border-radius: 10px;
+      background: var(--green);
+      color: white;
+      font-size: 0.9rem;
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 30px;
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    .nav-links a { text-decoration: none; }
+    .nav-links a:hover { color: var(--green); }
+
+    .button {
+      display: inline-flex;
+      min-height: 48px;
+      align-items: center;
+      justify-content: center;
+      padding: 0 20px;
+      border: 1px solid var(--green);
+      border-radius: 8px;
+      background: var(--green);
+      color: white;
+      font: inherit;
+      font-size: 0.92rem;
+      font-weight: 650;
+      text-decoration: none;
+      transition: background 160ms ease, transform 160ms ease;
+    }
+
+    .button:hover { background: var(--green-dark); transform: translateY(-1px); }
+
+    .button-secondary {
+      border-color: var(--line);
+      background: transparent;
+      color: var(--ink);
+    }
+
+    .button-secondary:hover { background: var(--surface); }
+
+    .hero {
+      display: grid;
+      min-height: 570px;
+      grid-template-columns: 1.05fr 0.95fr;
+      align-items: center;
+      gap: 64px;
+      padding-block: 74px;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      margin: 0 0 22px;
+      color: var(--green);
+      font-size: 0.78rem;
+      font-weight: 750;
+      letter-spacing: 0.11em;
+      text-transform: uppercase;
+    }
+
+    .eyebrow::before {
+      width: 18px;
+      height: 2px;
+      background: currentColor;
+      content: "";
+    }
+
+    h1, h2, p { margin-top: 0; }
+
+    h1 {
+      max-width: 620px;
+      margin-bottom: 22px;
+      font-size: clamp(3rem, 6vw, 5.3rem);
+      font-weight: 650;
+      letter-spacing: -0.075em;
+      line-height: 0.99;
+    }
+
+    h1 span { color: var(--green); }
+
+    .hero-copy {
+      max-width: 475px;
+      margin-bottom: 30px;
+      color: var(--muted);
+      font-size: 1.08rem;
+      line-height: 1.75;
+    }
+
+    .hero-actions { display: flex; flex-wrap: wrap; gap: 12px; }
+
+    .hero-note {
+      margin: 20px 0 0;
+      color: var(--muted);
+      font-size: 0.8rem;
+    }
+
+    .visual {
+      position: relative;
+      display: grid;
+      min-height: 385px;
+      place-items: center;
+      overflow: hidden;
+      border: 1px solid #e3e9de;
+      border-radius: 24px;
+      background:
+        radial-gradient(ellipse at 70% 20%, rgba(215, 237, 155, 0.7), transparent 34%),
+        linear-gradient(145deg, #eaf0e5, #dce8d9);
+    }
+
+    .visual::before, .visual::after {
+      position: absolute;
+      width: 250px;
+      height: 250px;
+      border: 1px solid rgba(36, 91, 67, 0.14);
+      border-radius: 50%;
+      content: "";
+    }
+
+    .visual::before { transform: translate(-52px, 30px); }
+    .visual::after { width: 330px; height: 330px; transform: translate(32px, 30px); }
+
+    .visual-card {
+      position: relative;
+      z-index: 1;
+      width: min(280px, 74%);
+      padding: 24px;
+      border: 1px solid rgba(255, 255, 255, 0.8);
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.88);
+      box-shadow: 0 24px 70px rgba(27, 57, 39, 0.13);
+      transform: rotate(-3deg);
+    }
+
+    .card-label {
+      margin-bottom: 22px;
+      color: var(--muted);
+      font-size: 0.72rem;
+      font-weight: 650;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .card-title {
+      margin-bottom: 18px;
+      font-size: 1.55rem;
+      font-weight: 650;
+      letter-spacing: -0.055em;
+    }
+
+    .progress-track { height: 7px; overflow: hidden; border-radius: 8px; background: #e8eee6; }
+    .progress-value { width: 72%; height: 100%; border-radius: inherit; background: var(--green); }
+
+    .card-footer {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 12px;
+      color: var(--muted);
+      font-size: 0.76rem;
+    }
+
+    .features {
+      padding-block: 82px 96px;
+      border-top: 1px solid var(--line);
+    }
+
+    .section-heading {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: 28px;
+      margin-bottom: 34px;
+    }
+
+    h2 {
+      margin-bottom: 0;
+      font-size: clamp(2rem, 4vw, 3rem);
+      font-weight: 620;
+      letter-spacing: -0.065em;
+    }
+
+    .section-intro {
+      max-width: 370px;
+      margin-bottom: 2px;
+      color: var(--muted);
+      line-height: 1.65;
+    }
+
+    .feature-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+    }
+
+    .feature {
+      min-height: 190px;
+      padding: 25px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: var(--surface);
+    }
+
+    .feature-icon {
+      display: grid;
+      width: 38px;
+      height: 38px;
+      margin-bottom: 22px;
+      place-items: center;
+      border-radius: 11px;
+      background: #edf3e6;
+      color: var(--green);
+      font-size: 1rem;
+      font-weight: 700;
+    }
+
+    h3 { margin: 0 0 9px; font-size: 1rem; letter-spacing: -0.02em; }
+    .feature p { margin-bottom: 0; color: var(--muted); font-size: 0.9rem; line-height: 1.65; }
+
+    .site-footer {
+      display: flex;
+      justify-content: space-between;
+      gap: 20px;
+      padding-block: 24px;
+      border-top: 1px solid var(--line);
+      color: var(--muted);
+      font-size: 0.82rem;
+    }
+
+    .site-footer p { margin: 0; }
+    .site-footer a { text-decoration: none; }
+    .site-footer a:hover { color: var(--green); }
+
+    :focus-visible { outline: 3px solid #8eaf69; outline-offset: 3px; }
+
+    @media (max-width: 760px) {
+      .shell { width: min(100% - 36px, 560px); }
+      .site-header { min-height: 72px; }
+      .nav-links { gap: 16px; }
+      .nav-links a:not(.button) { display: none; }
+      .nav-links .button { min-height: 40px; padding-inline: 14px; }
+      .hero { min-height: auto; grid-template-columns: 1fr; gap: 42px; padding-block: 66px; }
+      .visual { min-height: 320px; }
+      .section-heading { align-items: start; flex-direction: column; }
+      .feature-grid { grid-template-columns: 1fr; }
+      .feature { min-height: 0; }
+      .site-footer { flex-direction: column; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto !important; transition-duration: 0.01ms !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <header class="site-header">
+      <a class="brand" href="#" aria-label="Northstar home">
+        <span class="brand-mark" aria-hidden="true">N</span>
+        Northstar
+      </a>
+      <nav class="nav-links" aria-label="Main navigation">
+        <a href="#features">What you get</a>
+        <a href="#about">About</a>
+        <a class="button" href="#get-started">Get started <span aria-hidden="true">↗</span></a>
+      </nav>
+    </header>
+
+    <main>
+      <section class="hero" id="about">
+        <div>
+          <p class="eyebrow">A thoughtful starting point</p>
+          <h1>Make room for your <span>next big idea.</span></h1>
+          <p class="hero-copy">
+            A clean, flexible foundation for bringing your project online.
+            Make it yours, shape what comes next, and launch when you’re ready.
+          </p>
+          <div class="hero-actions" id="get-started">
+            <a class="button" href="#features">Explore the starter <span aria-hidden="true">→</span></a>
+            <a class="button button-secondary" href="mailto:hello@example.com">Say hello</a>
+          </div>
+          <p class="hero-note">Simple to customize. Ready to make your own.</p>
+        </div>
+
+        <div class="visual" aria-label="Illustration of a project progress card" role="img">
+          <div class="visual-card">
+            <p class="card-label">Your next chapter</p>
+            <p class="card-title">A good idea<br>starts somewhere.</p>
+            <div class="progress-track" aria-hidden="true"><div class="progress-value"></div></div>
+            <div class="card-footer"><span>Making progress</span><span>72%</span></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="features" id="features" aria-labelledby="features-title">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">The essentials</p>
+            <h2 id="features-title">A solid start, built in.</h2>
+          </div>
+          <p class="section-intro">Everything you need to begin shaping your web presence, without getting in the way of your idea.</p>
+        </div>
+        <div class="feature-grid">
+          <article class="feature">
+            <span class="feature-icon" aria-hidden="true">01</span>
+            <h3>Responsive by design</h3>
+            <p>A considered layout that adapts smoothly to phones, tablets, and desktop screens.</p>
+          </article>
+          <article class="feature">
+            <span class="feature-icon" aria-hidden="true">02</span>
+            <h3>Easy to make yours</h3>
+            <p>Clear, self-contained markup and styles give you a straightforward place to start.</p>
+          </article>
+          <article class="feature">
+            <span class="feature-icon" aria-hidden="true">03</span>
+            <h3>Ready to launch</h3>
+            <p>No build step or dependencies required. Open this page in a browser to see it live.</p>
+          </article>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <p>© <span id="year">2026</span> Northstar. A starting point for what’s next.</p>
+      <a href="mailto:hello@example.com">Get in touch</a>
+    </footer>
+  </div>
+  <script>
+    document.getElementById("year").textContent = new Date().getFullYear();
+  </script>
+</body>
+</html>
